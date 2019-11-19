@@ -57,13 +57,34 @@ summary(raw)
 cleaned <- raw %>%
   mutate(dvote=ifelse(response=='Dem',1,0)) %>%
   mutate(female=ifelse(gender=='Female',1,0)) %>%
-  select(dvote,female, response, gender)
+  select(dvote,female, response, gender) %>% 
+  mutate(predict = predict.glm(glm_obj, newdata = cleaned, type = c("response")))
 
 cleaned
 
-lm(formula=dvote~female, data=cleaned)
-glm(formula=dvote~female, data=cleaned)
-ggplot(cleaned, aes(x=female, y=dvote))  + geom_jitter(height=0.1,width=.1,alpha=.05)+geom_smooth(method='lm',method.args=list(family='binomial'))
+lm_obj <- lm(formula=dvote~female, data=cleaned)
+
+glm_obj <- glm(formula=dvote~female, data=cleaned, family = "binomial")
+
+glm_obj
+
+ggplot(lm_obj, aes(x = female, y = dvote))  +
+  geom_jitter(height = 0.1,
+              width = .1,
+              alpha = .05) +
+  geom_smooth(method = 'lm',
+              method.args = list(family = 'binomial'))
+
+my_data <- tibble(female = c(0, 0, 1)) %>% 
+  mutate(predict = predict.glm(glm_obj, newdata = my_data, type = c("response")))
+
+predict.glm(glm_obj, newdata = my_data, type = c("response"))
+
+my_data 
+
+cleaned %>% 
+  group_by(dvote) %>% 
+  summarise(avg = mean(predict))
 
 ```
 
